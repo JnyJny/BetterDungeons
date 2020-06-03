@@ -11,3 +11,4 @@ dist
 build
 tst*
 pip-wheel-metadata
+.DS_Store

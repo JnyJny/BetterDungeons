@@ -72,8 +72,8 @@ minor_release: minor push publish
 release: patch_release
 
 
-demo.gif: demo.mov
-	ffmpeg -i $< -filter_complex "[0:v] fps=12,scale=1024:-1,split [a][b];[a] palettegen [p];[b][p] paletteuse" $@
+demo/demo.gif: demo/demo.mov
+	ffmpeg -i $< -filter_complex "[0:v] fps=12,scale=512:-1,split [a][b];[a] palettegen [p];[b][p] paletteuse" $@
 
 clean:
 	@/bin/rm -rf 
