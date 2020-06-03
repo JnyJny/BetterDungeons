@@ -1,0 +1,13 @@
+*~
+\#*
+.\#*
+*.egg-info
+*.mov
+.eggs
+__MACOSX
+.pytest_cache
+.coverage
+dist
+build
+tst*
+pip-wheel-metadata

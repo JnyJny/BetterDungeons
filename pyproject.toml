@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "betterdungeons"
+version = "0.1.0"
+description = ""
+authors = ["JnyJny <erik.oshaughnessy@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+arcade = "^2.3"
+click = "^7.0"
+loguru = "^0.2.5"
+pymunk = "^5.4"
+typer = "^0.2.1"
+scipy = "^1.4.1"
+
+[tool.poetry.scripts]
+dungeon = "betterdungeons.__main__:cli"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
