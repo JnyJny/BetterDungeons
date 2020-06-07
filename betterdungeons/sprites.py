@@ -39,9 +39,15 @@ class RoomSprite(PhysicsSprite):
         super().__init__(space=space)
 
         self.wall = 4
-        self.grid = grid + 1
-        self.width = (width * grid) + (width - 1) + (self.wall * 2)
-        self.height = (height * grid) + (height - 1) + (self.wall * 2)
+        self.line = 1
+        self.grid = grid
+        self.grid_x = width
+        self.grid_y = height
+
+        self.width = (self.wall * 2) + (self.grid * width) + (self.line * (width - 1))
+        self.height = (
+            (self.wall * 2) + (self.grid * height) + (self.line * (height - 1))
+        )
 
         self.texture = self.gridtexture
 
@@ -76,11 +82,13 @@ class RoomSprite(PhysicsSprite):
         w = self.width
         h = self.height
 
-        for x in range(self.grid + self.wall, w, self.grid):
+        for dx in range(1, self.grid_x):
+            x = self.wall + (dx * self.grid) + dx
             hline = ((x, 0), (x, h))
             draw.line(hline, fill=fill, width=1)
 
-        for y in range(self.grid + self.wall, h, self.grid):
+        for dy in range(1, self.grid_y):
+            y = self.wall + (dy * self.grid) + dy
             vline = ((0, y), (w, y))
             draw.line(vline, fill=fill)
 
