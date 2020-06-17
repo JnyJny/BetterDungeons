@@ -20,8 +20,6 @@ WALL = 2
 
 class RoomSprite(PhysicsSprite):
 
-    collision_type = ROOM
-
     _margin = 0
 
     @classmethod
@@ -38,7 +36,7 @@ class RoomSprite(PhysicsSprite):
 
         super().__init__(space=space)
 
-        self.wall = 4
+        self.wall = 3
         self.line = 1
         self.grid = grid
         self.grid_x = width
@@ -49,19 +47,21 @@ class RoomSprite(PhysicsSprite):
             (self.wall * 2) + (self.grid * height) + (self.line * (height - 1))
         )
 
-        self.texture = self.gridtexture
+        self.append_texture(self.gridtexture)
+        self.set_texture(0)
 
         self.shape.friction = 0.9
         self.shape.elasticity = 1.0
         self.shape.density = 0.5
-        self.shape.collision_type = self.collision_type
 
         self.touching = 0
-        logger.info(str(self))
 
     def set_position(self, center_x: float, center_y: float):
         super().set_position(center_x, center_y)
         self.body.position = pymunk.Vec2d(center_x, center_y)
+
+    def __hash__(self):
+        return id(self)
 
     @property
     def gridtexture(self):
@@ -83,14 +83,14 @@ class RoomSprite(PhysicsSprite):
         h = self.height
 
         for dx in range(1, self.grid_x):
-            x = self.wall + (dx * self.grid) + dx
+            x = self.wall + (dx * self.grid) + (dx * self.line)
             hline = ((x, 0), (x, h))
-            draw.line(hline, fill=fill, width=1)
+            draw.line(hline, fill=fill, width=self.line)
 
         for dy in range(1, self.grid_y):
-            y = self.wall + (dy * self.grid) + dy
+            y = self.wall + (dy * self.grid) + (dy * self.line)
             vline = ((0, y), (w, y))
-            draw.line(vline, fill=fill)
+            draw.line(vline, fill=fill, width=self.line)
 
         draw.rectangle(((0, 0), (w, h)), outline=(0, 0, 0, 255), width=self.wall)
 
@@ -107,27 +107,53 @@ class RoomSprite(PhysicsSprite):
         velocity = f"{self.body.velocity.get_length():.2f}"
         return f"Sprite @ {self.center} {size}"
 
+    @property
+    def neighbors(self):
+        try:
+            return self._neighbors
+        except AttributeError:
+            pass
+        self._neighbors = []
+        return self._neighbors
+
+    @property
+    def hallways(self):
+        try:
+            if len(self.neighbors) == 0:
+                return []
+            return self._hallways
+        except AttributeError:
+            pass
+        self._hallways = []
+
+        for neighbor in self.neighbors:
+            A = pymunk.Vec2d(*self.position)
+            B = pymunk.Vec2d(*neighbor.position)
+            C = (A + B) / 2
+            w, h = A - B
+            shape = arcade.create_rectangle_outline(*C, w, h, (0, 127, 0, 127), 1)
+            self._hallways.append(shape)
+
+        return self._hallways
+
     def update(self):
 
         super().update()
 
-        if not self.body.is_sleeping:
+        if self.touching:
+            self.color = (255, 0, 0, 64)
+            self.shape.friction = 0
+        else:
+            self.color = (255, 255, 255, 255)
+            self.shape.friction = 1
 
-            if self.touching:
-                self.color = (255, 0, 0, 64)
-                self.shape.friction = 0
-            else:
-                self.color = (255, 255, 255, 255)
-                self.shape.friction = 1
-
-    def draw(self):
-        logger.info("draw")
+    def on_draw(self, dt: float):
+        super().on_draw(dt)
+        for hallway in self.hallways:
+            hallway.draw()
 
 
 class WallSprite(PhysicsSprite):
-
-    collision_type = WALL
-
     def __init__(self, *args, **kwds):
 
         kwds["body_type"] = pymunk.Body.STATIC

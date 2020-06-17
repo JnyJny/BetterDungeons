@@ -123,7 +123,7 @@ class DungeonMap:
         return self._rooms
 
     @property
-    def triangles(self):
+    def triangles(self) -> list:
 
         try:
 
@@ -138,7 +138,13 @@ class DungeonMap:
 
         tri = Delaunay(points)
 
+        logger.info(f"points: {points}")
+        logger.info(f"simplices: {tri.simplices}")
+
         self._triangles = points[tri.simplices].tolist()
+
+        for tri in self._triangles:
+            tri.append(tri[0])
 
         return self._triangles
 
@@ -239,27 +245,34 @@ class DungeonMap:
 
     def update_adjusting(self):
 
-        for room in self.rooms:
-            x, y = room.position
-            x -= x % 10
-            y -= y % 10
-            room.set_position(x + 10, y + 10)
+        # for room in self.rooms:
+        #    x, y = room.position
+        #    x -= x % 10
+        #    y -= y % 10
+        #    room.set_position(x + 10, y + 10)
 
         self.advance()
 
     def update_culling(self):
 
-        n = int(len(self.rooms) * 0.75)
-
-        smallest = sorted(self.rooms, key=lambda v: v.width * v.height)[:n]
-        for room in smallest:
-            self.rooms.remove(room)
+        # n = max(int(len(self.rooms) * 0.75), 3)
+        #
+        # smallest = sorted(self.rooms, key=lambda v: v.width * v.height)[:n]
+        # for room in smallest:
+        #    self.rooms.remove(room)
 
         self.advance()
 
     def update_neighbors(self):
 
-        pass
+        triangulation = Delaunay(np.array([r.position for r in self.rooms]))
+
+        for tri in triangulation.simplices:
+            neighbors = [self.rooms[n] for n in tri]
+            for neighbor in neighbors:
+                neighbor.neighbors.extend(set(neighbors) - {neighbor})
+
+        self.advance()
 
     def update_done(self):
 
@@ -271,5 +284,6 @@ class DungeonMap:
         self.bounds.draw()
         self.rooms.draw()
 
-        for tri in self.triangles:
-            arcade.draw_line_strip(tri, arcade.color.GREEN, 3)
+        for room in self.rooms:
+            for hallway in room.hallways:
+                hallway.draw()
